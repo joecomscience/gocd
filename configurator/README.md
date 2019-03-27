@@ -1,1 +1,0 @@
-[base_image](https://github.com/leprechaun/gocd-configurator)
