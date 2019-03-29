@@ -16,31 +16,40 @@ type User struct {
 	Addr      string             `json:"addr" bson:"addr"`
 }
 
-func (user *User) GetUsers(database *mongo.Database) ([]User, error) {
+func (u *User) GetUsers(conn *mongo.Database) ([]User, error) {
 	var users []User
 
-	collection := database.Collection("users")
-	u, err := collection.Find(context.TODO(), bson.M{}, nil)
+	collection := conn.Collection("users")
+	data, err := collection.Find(context.Background(), bson.D{}, nil)
 	if err != nil {
 		return nil, err
 	}
+	defer data.Close(context.Background())
 
-	for u.Next(context.TODO()) {
+	for data.Next(context.Background()) {
 		var tempUser User
-		if err := u.Decode(&tempUser); err != nil {
+		if err := data.Decode(&tempUser); err != nil {
 			log.Fatal(err)
 		}
 
 		users = append(users, tempUser)
 	}
 
-	if err := u.Err(); err != nil {
-		return nil, err
-	}
-
-	if err := u.Close(context.TODO()); err != nil {
+	if err := data.Err(); err != nil {
 		return nil, err
 	}
 
 	return users, nil
+}
+
+func (u *User) CreateUser(conn *mongo.Database, user User) (*mongo.InsertOneResult, error) {
+	collection := conn.Collection("users")
+	user.ID = primitive.NewObjectID()
+
+	data, err := collection.InsertOne(context.Background(), user)
+	if err != nil {
+		return nil, err
+	}
+
+	return data, nil
 }
