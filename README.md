@@ -1,1 +1,1 @@
-# gocd
+# alert manager
