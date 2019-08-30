@@ -13,7 +13,7 @@ type Line struct {
 
 func (l *Line) Send() error {
 	uri := "https://notify-api.line.me/api/notify"
-	token := "bxGQKJBENnt5PjGh63ALWrLbxOQJC6EfW7kb7NXGkrC"
+	token := ""
 
 	c := &http.Client{}
 	d := url.Values{}
