@@ -12,13 +12,14 @@ import (
 	"github.com/prometheus/alertmanager/template"
 )
 
-const token = "guBsWD3wzEsk9c9O0txnHeDSHz9zBz76xSfmTcF40Gb"
-const line_uri = "https://notify-api.line.me/api/notify"
+const (
+	line_uri = "https://notify-api.line.me/api/notify"
+)
 
 func main() {
 	port := os.Getenv("PORT")
 	if port == "" {
-		panic("--require port--")
+		port = "80"
 	}
 
 	http.HandleFunc("/health", healthCheck)
@@ -30,6 +31,7 @@ func main() {
 
 func healthCheck(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("ok"))
 }
 
 func hookHandler(w http.ResponseWriter, r *http.Request) {
@@ -46,7 +48,7 @@ func hookHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func lineChannel(info template.Data) {
-	bearer := "Bearer " + token
+	bearer := "Bearer " + os.Getenv("LINE_TOKEN")
 
 	c := &http.Client{}
 	body := url.Values{}
