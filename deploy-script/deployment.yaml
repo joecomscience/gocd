@@ -1,0 +1,50 @@
+apiVersion: apps.openshift.io/v1
+kind: DeploymentConfig
+metadata:
+  labels:
+    app: api-web-hook
+  name: api-web-hook
+spec:
+  replicas: 1
+  selector:
+    app: api-web-hook
+  strategy:
+    resources: {}
+    rollingParams:
+      intervalSeconds: 1
+      maxSurge: 25%
+      maxUnavailable: 25%
+      timeoutSeconds: 600
+      updatePeriodSeconds: 1
+    type: Rolling
+  template:
+    metadata:
+      labels:
+        app: api-web-hook
+    spec:
+      containers:
+        - env:
+          - name: LINE_TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: api-web-hook
+                value: line_token
+          image: openshift/aycap-api-web-hook:latest
+          imagePullPolicy: Always
+          name: api-web-hook
+          ports:
+            - containerPort: 8088
+              protocol: TCP
+          resources: {}
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      terminationGracePeriodSeconds: 30
+  triggers:
+    - type: ConfigChange
+    - type: ImageChange
+      imageChangeParams:
+        automatic: true
+        from:
+          kine: ImageStreamTag
+          name: api-web-hook
