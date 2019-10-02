@@ -2,12 +2,15 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
 	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"github.com/prometheus/alertmanager/template"
 )
@@ -17,16 +20,46 @@ const (
 )
 
 func main() {
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "80"
+	port := ":" + os.Getenv("PORT")
+	// if port == "" {
+	// 	port = "80"
+	// }
+
+	router := http.NewServeMux()
+
+	router.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
+	router.HandleFunc("/hook", hookHandler)
+
+	srv := &http.Server{
+		Addr:    port,
+		Handler: router,
 	}
 
-	http.HandleFunc("/health", healthCheck)
-	http.HandleFunc("/hook", hookHandler)
+	done := make(chan os.Signal, 1)
+	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 
+	go func() {
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("listen: %s\n", err)
+		}
+	}()
 	log.Printf("server start using port: %s", port)
-	log.Fatal(http.ListenAndServe(":"+port, nil))
+
+	<-done
+	log.Println("Server Stopped")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer func() {
+		cancel()
+	}()
+
+	if err := srv.Shutdown(ctx); err != nil {
+		log.Fatalf("Server Shutdown Failed:%+v", err)
+	}
+	log.Print("Server Exited Properly")
+
 }
 
 func healthCheck(w http.ResponseWriter, r *http.Request) {
@@ -36,36 +69,37 @@ func healthCheck(w http.ResponseWriter, r *http.Request) {
 
 func hookHandler(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
-	d := template.Data{}
+	promData := template.Data{}
+	bearer := "Bearer " + os.Getenv("LINE_TOKEN")
+	messageAlert := ""
 
-	if err := json.NewDecoder(r.Body).Decode(&d); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&promData); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	lineChannel(d)
-	log.Println("------")
-}
-
-func lineChannel(info template.Data) {
-	bearer := "Bearer " + os.Getenv("LINE_TOKEN")
-
-	c := &http.Client{}
-	body := url.Values{}
-
-	body.Set("message", "test message")
-
-	r, _ := http.NewRequest("POST", line_uri, bytes.NewBufferString(body.Encode()))
-	r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
-	r.Header.Add("Authorization", bearer)
-
-	res, err := c.Do(r)
-	if err != nil {
-		log.Printf("request error %v", err)
+	for _, data := range promData.Alerts {
+		messageAlert = data.Annotations["description"]
 	}
-	defer res.Body.Close()
 
-	f, _ := ioutil.ReadAll(res.Body)
+	client := &http.Client{}
+	body := url.Values{}
+	body.Set("message", messageAlert)
 
-	log.Printf("result: %v", string(f))
+	req, _ := http.NewRequest("POST", line_uri, bytes.NewBufferString(body.Encode()))
+	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Add("Authorization", bearer)
+
+	log.Println("==1==")
+
+	result, err := client.Do(req)
+	if err != nil {
+		log.Printf("%v\n", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("Send Line notify error"))
+		return
+	}
+	defer result.Body.Close()
+	log.Println("==2==")
+	w.WriteHeader(http.StatusOK)
 }
