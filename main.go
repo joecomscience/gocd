@@ -90,8 +90,6 @@ func hookHandler(w http.ResponseWriter, r *http.Request) {
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Add("Authorization", bearer)
 
-	log.Println("==1==")
-
 	result, err := client.Do(req)
 	if err != nil {
 		log.Printf("%v\n", err)
@@ -100,6 +98,5 @@ func hookHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer result.Body.Close()
-	log.Println("==2==")
 	w.WriteHeader(http.StatusOK)
 }
