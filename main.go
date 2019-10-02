@@ -79,6 +79,7 @@ func hookHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for _, data := range promData.Alerts {
+		log.Printf("alert message: %v\n", data.Annotations["description"])
 		messageAlert = data.Annotations["description"]
 	}
 
