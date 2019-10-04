@@ -16,14 +16,11 @@ import (
 )
 
 const (
-	line_uri = "https://notify-api.line.me/api/notify"
+	lineUri = "https://notify-api.line.me/api/notify"
 )
 
 func main() {
 	port := ":" + os.Getenv("PORT")
-	// if port == "" {
-	// 	port = "80"
-	// }
 
 	router := http.NewServeMux()
 
@@ -64,7 +61,7 @@ func main() {
 
 func healthCheck(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("ok"))
+	_, _  = w.Write([]byte("ok"))
 }
 
 func hookHandler(w http.ResponseWriter, r *http.Request) {
@@ -87,7 +84,7 @@ func hookHandler(w http.ResponseWriter, r *http.Request) {
 	body := url.Values{}
 	body.Set("message", messageAlert)
 
-	req, _ := http.NewRequest("POST", line_uri, bytes.NewBufferString(body.Encode()))
+	req, _ := http.NewRequest("POST", lineUri, bytes.NewBufferString(body.Encode()))
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Add("Authorization", bearer)
 
