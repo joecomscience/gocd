@@ -1,26 +1,21 @@
 
-# Created by https://www.gitignore.io/api/go
-# Edit at https://www.gitignore.io/?templates=go
+# Created by https://www.gitignore.io/api/react
+# Edit at https://www.gitignore.io/?templates=react
 
-### Go ###
-# Binaries for programs and plugins
-*.exe
-*.exe~
-*.dll
-*.so
-*.dylib
+### react ###
+.DS_*
+*.log
+logs
+**/*.backup.*
+**/*.back.*
 
-# Test binary, built with `go test -c`
-*.test
+node_modules
+bower_componets
 
-# Output of the go coverage tool, specifically when used with LiteIDE
-*.out
+*.sublime*
 
-# Dependency directories (remove the comment below to include it)
-# vendor/
+psd
+thumb
+sketch
 
-### Go Patch ###
-/vendor/
-/Godeps/
-
-# End of https://www.gitignore.io/api/go
+# End of https://www.gitignore.io/api/reacts
