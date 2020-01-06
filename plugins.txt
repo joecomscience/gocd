@@ -122,4 +122,3 @@ workflow-scm-step:2.9
 workflow-step-api:2.21
 workflow-support:3.3
 ws-cleanup:0.37
-yet-another-docker-plugin:0.1.5
