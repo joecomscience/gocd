@@ -12,4 +12,5 @@ RUN /usr/local/bin/install-plugins.sh < /tmp/plugins.txt
 COPY init.groovy.d /usr/share/jenkins/ref/init.groovy.d
 COPY ./scripts/docker-entrypoint.sh /docker-entrypoint.sh
 
+USER jenkins
 ENTRYPOINT ["/docker-entrypoint.sh"]
