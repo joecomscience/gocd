@@ -9,6 +9,7 @@ zip \
 unzip \
 which \
 git \
+wget \
 docker
 
 echo '--check passwd--'
@@ -42,3 +43,15 @@ unzip sonar-scanner-cli-4.2.0.1873-linux.zip -d /home
 rm -rf sonar-scanner-cli-4.2.0.1873-linux.zip
 cd /home
 mv sonar-scanner-4.2.0.1873-linux sonar-scanner
+
+echo '--install dependency check--'
+cd /home
+wget -O dependency-check-5.3.0-release.zip https://dl.bintray.com/jeremy-long/owasp/dependency-check-5.3.0-release.zip
+unzip dependency-check-5.3.0-release.zip
+rm -f dependency-check-5.3.0-release.zip
+
+echo '--install openshift cli--'
+wget -O openshift-origin-client-tools-v3.11.0-0cbc58b-linux-64bit.tar.gz https://github.com/openshift/origin/releases/download/v3.11.0/openshift-origin-client-tools-v3.11.0-0cbc58b-linux-64bit.tar.gz
+tar xvzf openshift-origin-client-tools-v3.11.0-0cbc58b-linux-64bit.tar.gz
+cp ./openshift-origin-client-tools-v3.11.0-0cbc58b-linux-64bit/oc /usr/local/bin
+rm -rf openshift-origin-client-tools-v3.11.0-0cbc58b-linux-64bit*
