@@ -75,11 +75,13 @@ docker run -d \
 
 ## Get Jenkins plugin list
 
-- Remote to Jenkins container.
-- Run command
+- Go to Jenkins script url `http://localhost:8080/script` then run below script for get plugins list.
 
-```
-  ls /usr/share/jenkins/ref/plugins/ | sed 's/.jpi//g' > plugins.txt
+```groovy
+  Jenkins.instance.pluginManager.plugins.each{
+    plugin -> 
+      println ("${plugin.getShortName()}:${plugin.getVersion()}")
+  }
 ```
 
 #### Development
