@@ -1,19 +1,31 @@
-FROM centos:7
+FROM jenkinsci/jnlp-slave:3.35-2-alpine
 
 LABEL maintainer="joewalker"
-ARG USER
-ARG PASS
 
-ENV JAVA_HOME=/root/
-ENV SONAR_RUNNER_HOME=/home/sonar-scanner
-ENV PATH=$PATH:${SONAR_RUNNER_HOME}/bin
+USER root
 
-COPY entrypoint.sh .
-COPY sshd_config /etc/ssh/sshd_config
+ENV NEXUS_USER="admin"
+ENV NEXUS_PASS="admin"
+ENV NEXUS_URL="10.101.16.52:8080"
+ENV PATH=$PATH:/home/sonar-scanner/bin;/home/dependency-check/bin
 
-RUN chmod u+x entrypoint.sh && \
-    ./entrypoint.sh
+COPY setup.sh .
+COPY settings.xml /tmp/settings.xml
+
+RUN apk update && \
+    apk add --no-cache \
+    ca-certificates \
+    zip \
+    unzip \
+    git \
+    wget \
+    curl \
+    docker \
+    openjdk8 \
+    maven
+
+RUN chmod u+x setup.sh && \
+    bash ./setup.sh
 
 VOLUME [ "/var/run/docker.sock" ]
-EXPOSE 22
-CMD [ "/usr/sbin/sshd", "-D"]
+USER jenkins
