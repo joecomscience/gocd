@@ -22,9 +22,14 @@ RUN apk update && \
     curl \
     docker \
     openjdk8 \
-    maven
+    maven \
+    jq
 
-RUN chmod u+x setup.sh && \
+RUN wget https://releases.hashicorp.com/vault/1.3.2/vault_1.3.2_linux_amd64.zip && \
+    unzip vault_1.3.2_linux_amd64.zip && \
+    rm -f vault_1.3.2_linux_amd64.zip && \
+    mv vault /usr/local/bin && \
+    chmod u+x setup.sh && \
     bash ./setup.sh
 
 VOLUME [ "/var/run/docker.sock" ]
