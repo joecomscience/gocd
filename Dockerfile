@@ -1,16 +1,17 @@
 FROM jenkins/jenkins:lts
 
 USER root
-ENV JAVA_OPTS="-Djenkins.install.runSetupWizard=false"
 
-RUN apt-get update && \
-    apt-get install -y git maven
+RUN apk update --no-cache && \
+    apk add --no-cache \
+    ca-certificates 
 
-COPY plugins.txt /tmp/plugins.txt
-RUN /usr/local/bin/install-plugins.sh < /tmp/plugins.txt
-
-COPY init.groovy.d /usr/share/jenkins/ref/init.groovy.d
-
-USER jenkins
-
-# https://dl.bintray.com/groovy/maven/apache-groovy-binary-3.0.0.zip
+COPY internal-ca /usr/local/share/ca-certificates/internal-ca.crt
+RUN update-ca-certificates && \
+    keytool \
+    -import \
+    -storepass changeit \
+    -file /usr/local/share/ca-certificates/internal-ca.crt \
+    -keystore /etc/ssl/certs/java/cacerts \
+    -noprompt \
+    -alias jenkins_master
