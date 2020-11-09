@@ -1,8 +1,11 @@
-build8:
-	DOCKER_BUILDKIT=1 docker build -t joewalker/jenkins-slave:jdk8 -f dockerfile/slave/. .
+jdk8:
+	DOCKER_BUILDKIT=1 docker build -t joewalker/jenkins-slave:jdk8 -f dockerfile/slave/Dockerfile-jdk8 .
 
-build7:
-	DOCKER_BUILDKIT=1 docker build -t joewalker/jenkins-slave:jdk7 --arg JAVA_VERSION="openjdk7" -f dockerfile/slave/. .
+jdk7:
+	DOCKER_BUILDKIT=1 docker build -t joewalker/jenkins-slave:jdk7 -f dockerfile/slave/Dockerfile-jdk7 .
+
+slave:
+	DOCKER_BUILDKIT=1 docker build -t joewalker/jenkins-slave:muti -f dockerfile/slave/Dockerfile .
 
 push:
 	docker push joewalker/jenkins-slave

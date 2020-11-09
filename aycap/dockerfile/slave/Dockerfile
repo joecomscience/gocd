@@ -1,5 +1,3 @@
-ARG JAVA_VERSION="openjdk8"
-
 FROM jenkins/jnlp-slave:alpine
 
 LABEL maintainer="joewalker"
@@ -7,9 +5,10 @@ LABEL maintainer="joewalker"
 USER root
 
 ENV PATH=$PATH:/home/sonar-scanner/bin;/home/dependency-check/bin
+ENV SDKMAN_DIR=/root/.sdkman
 
-COPY ../../assets .
-COPY ../../scripts/setup.sh .
+COPY assets .
+COPY scripts/setup.sh .
 
 RUN apk update && \
     apk add --no-cache \
@@ -20,7 +19,6 @@ RUN apk update && \
     wget \
     curl \
     docker \
-    ${JAVA_VERSION} \
     maven \
     jq
 
