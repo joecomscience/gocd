@@ -4,7 +4,7 @@ LABEL maintainer="joewalker"
 
 USER root
 
-ENV PATH=$PATH:/home/sonar-scanner/bin;/home/dependency-check/bin
+# ENV PATH=$PATH:/home/sonar-scanner/bin;/home/dependency-check/bin
 ENV SDKMAN_DIR=/root/.sdkman
 
 COPY assets .

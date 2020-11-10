@@ -4,9 +4,11 @@ LABEL maintainer="joewalker"
 
 USER root
 
-ENV PATH=$PATH:/home/sonar-scanner/bin;/home/dependency-check/bin
+ENV SDKMAN_DIR=/root/.sdkman
+ENV SDKMAN_JAVA_VERSION=8.0.272-zulu
 
-COPY . .
+COPY ../assets .
+COPY ../scripts/setup.sh .
 
 RUN apk update && \
     apk add --no-cache \
@@ -17,7 +19,7 @@ RUN apk update && \
     wget \
     curl \
     docker \
-    openjdk8 \
+    openjdk7 \
     maven \
     jq
 

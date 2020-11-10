@@ -5,7 +5,7 @@ jdk7:
 	DOCKER_BUILDKIT=1 docker build -t joewalker/jenkins-slave:jdk7 -f dockerfile/slave/Dockerfile-jdk7 .
 
 slave:
-	DOCKER_BUILDKIT=1 docker build -t joewalker/jenkins-slave:muti -f dockerfile/slave/Dockerfile .
+	DOCKER_BUILDKIT=1 docker build -t joewalker/jenkins-slave:multi-java -f dockerfile/slave/Dockerfile .
 
 push:
-	docker push joewalker/jenkins-slave
+	docker push joewalker/jenkins-slave:multi-java
