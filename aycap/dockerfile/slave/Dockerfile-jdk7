@@ -6,12 +6,11 @@ USER root
 
 ENV PATH=$PATH:/home/sonar-scanner/bin;/home/dependency-check/bin
 
-COPY ../assets .
-COPY ../scripts/setup.sh .
+COPY assets .
+COPY scripts/setup.sh .
 
 RUN apk update && \
     apk add --no-cache \
-    ca-certificates \
     zip \
     unzip \
     git \
@@ -20,6 +19,7 @@ RUN apk update && \
     docker \
     openjdk7 \
     maven \
+    gradle \
     jq
 
 RUN chmod u+x *.sh && \

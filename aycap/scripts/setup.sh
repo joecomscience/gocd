@@ -6,8 +6,6 @@ chmod u+x ./libs/transformxml
 mv ./libs/transformxml /usr/local/bin
 
 mv maven_settings.xml /usr/share/java/maven-3/conf/settings.xml
-mv master.crt /usr/share/ca-certificates/master.crt
-mv ca.crt /usr/local/share/ca-certificates/ca.crt
 
 wget -q -O /etc/apk/keys/sgerrand.rsa.pub https://alpine-pkgs.sgerrand.com/sgerrand.rsa.pub
 wget https://github.com/sgerrand/alpine-pkg-glibc/releases/download/2.30-r0/glibc-2.30-r0.apk
@@ -35,14 +33,3 @@ echo '--install internal cert--'
 update-ca-certificates
 # keytool -import -storepass changeit -file /usr/share/ca-certificates/master.crt -keystore /etc/ssl/certs/java/cacerts -noprompt -alias jenkins_master
 
-echo '--install sdkman manage java version--'
-curl -s "https://get.sdkman.io" | bash
-rm -rf /var/lib/apt/lists/*
-echo "sdkman_auto_answer=true" > $SDKMAN_DIR/etc/config
-echo "sdkman_auto_selfupdate=false" >> $SDKMAN_DIR/etc/config
-echo "sdkman_insecure_ssl=true" >> $SDKMAN_DIR/etc/config
-
-source $SDKMAN_DIR/bin/sdkman-init.sh
-
-sdk install java 7.0.282-zulu
-sdk install java 8.0.272-zulu

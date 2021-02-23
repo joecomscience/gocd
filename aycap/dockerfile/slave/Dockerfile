@@ -1,29 +1,24 @@
-FROM jenkins/jnlp-slave:alpine
-
-LABEL maintainer="joewalker"
-
-USER root
-
-ENV PATH=$PATH:/home/sonar-scanner/bin;/home/dependency-check/bin
-ENV SDKMAN_DIR=/root/.sdkman
-
+FROM jenkins/jnlp-slave:alpine as jenkins-base
+WORKDIR /home
 COPY assets .
 COPY scripts/setup.sh .
-
-RUN apk update && \
-    apk add --no-cache \
-    ca-certificates \
-    zip \
-    unzip \
-    git \
-    wget \
-    curl \
-    docker \
-    maven \
-    jq
 
 RUN chmod u+x *.sh && \
     bash ./setup.sh && \
     rm -f setup.sh
 
-VOLUME [ "/var/run/docker.sock" ]
+FROM openjdk:8-alpine
+LABEL maintainer="joewalker"
+
+RUN apk update && \
+    apk add --no-cache \
+    git \
+    docker \
+    maven \
+    gradle \
+    jq
+
+COPY --from=jenkins-base /usr/share/jenkins/ /usr/share/jenkins/
+COPY --from=jenkins-base /home/assets/libs/transformxml /usr/local/bin
+COPY --from=jenkins-base /usr/local/bin/oc /usr/local/bin
+COPY --from=jenkins-base /home/assets/maven_settings.xml /usr/share/java/maven-3/conf/settings.xml
