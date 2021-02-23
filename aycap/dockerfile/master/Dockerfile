@@ -27,5 +27,5 @@ RUN openssl \
     -destalias aycapsu01ts472.dso.aycap.bayad.co.th
 
 FROM jenkins/jenkins:lts
-USER root
+USER jenkins
 COPY --from=jenkins-base /home/jenkins_keystore.jks /var/jenkins_home/
