@@ -9,28 +9,54 @@ RUN mkdir -p oc-cli gradle && \
     chmod +x ./libs/transformxml
 
 FROM jenkins/inbound-agent:latest-jdk11
-ENV MAVEN_HOME /usr/share/java/maven
+ENV MAVEN_HOME /usr/share/maven
 ENV PATH $MAVEN_HOME/bin:$PATH
 USER root
 
 RUN apt-get update && \
     apt-get install -y \
+    apt-transport-https \
+    ca-certificates \
+    curl \
+    gnupg-agent \
+    software-properties-common && \
+    curl -fsSL https://download.docker.com/linux/debian/gpg | apt-key add - && \
+    apt-key fingerprint 0EBFCD88 && \
+    add-apt-repository \
+   "deb [arch=amd64] https://download.docker.com/linux/debian \
+   $(lsb_release -cs) \
+   stable"
+
+RUN apt-get update && \
+    apt-get install -y \
     git \
-    docker \
+    docker-ce-cli \
     maven \
     jq
 
 COPY --from=base /home/libs/transformxml /usr/local/bin
 COPY --from=base /home/oc-cli/oc /usr/local/bin
-COPY --from=base /home/maven_settings.xml /usr/share/java/maven/conf/settings.xml
-COPY ./assets/certs/aycapsu01ts472.cer aycapsu01ts472.cer
+COPY --from=base /home/maven_settings.xml /root/.m2/settings.xml
+COPY --from=base /home/ca.crt /usr/local/share/ca-certificates/ca.crt
+COPY --from=base /home/openshift-node-client-ca.crt /usr/local/share/ca-certificates/openshift-node-client-ca.crt
+COPY --from=base /home/certs/aycapsu01ts471.cer aycapsu01ts471.cer
+COPY --from=base /home/certs/aycapsu01ts472.cer aycapsu01ts472.cer
 
-RUN keytool \
+RUN update-ca-certificates
+RUN  keytool \
     -import \
     -trustcacerts \
     -alias aycapsu01ts472.dso.aycap.bayad.co.th \
     -keystore $JAVA_HOME/lib/security/cacerts \
     -file aycapsu01ts472.cer \
+    -storepass changeit \
+    -noprompt
+RUN keytool \
+    -import \
+    -trustcacerts \
+    -alias aycapsu01ts471.dso.aycap.bayad.co.th \
+    -keystore $JAVA_HOME/lib/security/cacerts \
+    -file aycapsu01ts471.cer \
     -storepass changeit \
     -noprompt
 

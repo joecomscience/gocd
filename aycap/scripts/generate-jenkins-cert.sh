@@ -1,16 +1,34 @@
 
-docker run --rm --init joewalker/jenkins-slave:jdk8 -url https://host.docker.internal:8443 -secret f92e08e5bd31f4cf5bc95a603cd6bf2447e1848e012de597611c5d63682af0b5 slave-1
+#!/bin/sh
 
-docker run --rm --init joewalker/jenkins-slave:jdk8 -direct host.docker.internal:8443
+DC_VERSION="latest"
+DC_DIRECTORY=$HOME/OWASP-Dependency-Check
+DC_PROJECT="dependency-check scan: $(pwd)"
+DATA_DIRECTORY="$DC_DIRECTORY/data"
+CACHE_DIRECTORY="$DC_DIRECTORY/data/cache"
 
-0C CB 5D 8D 21 EB 77 6C 4C 6A 97 04 25 F8 7D 4C 0A 65 FB 6C
-0A:65:FB:6C
+if [ ! -d "$DATA_DIRECTORY" ]; then
+    echo "Initially creating persistent directory: $DATA_DIRECTORY"
+    mkdir -p "$DATA_DIRECTORY"
+fi
+if [ ! -d "$CACHE_DIRECTORY" ]; then
+    echo "Initially creating persistent directory: $CACHE_DIRECTORY"
+    mkdir -p "$CACHE_DIRECTORY"
+fi
 
-docker run --rm --name=agent1 -p 3000:22 \
--e "JENKINS_AGENT_SSH_PUBKEY=~/home/jenkins/.ssh/jenkins_agent_key.pub" \
-jenkins/ssh-agent:alpine
+# Make sure we are using the latest version
+docker pull owasp/dependency-check:$DC_VERSION
 
-VARS1="HOME=|USER=|MAIL=|LC_ALL=|LS_COLORS=|LANG="
-VARS2="HOSTNAME=|PWD=|TERM=|SHLVL=|LANGUAGE=|_="
-VARS="${VARS1}|${VARS2}"
-docker exec agent1 sh -c "env | egrep -v "^(${VARS})" >> /etc/environment"
+docker run --rm \
+    -e user=$USER \
+    -u $(id -u ${USER}):$(id -g ${USER}) \
+    --volume $(pwd):/src:z \
+    --volume "$DATA_DIRECTORY":/usr/share/dependency-check/data:z \
+    --volume $(pwd)/odc-reports:/report:z \
+    owasp/dependency-check:$DC_VERSION \
+    --scan /src \
+    --format "ALL" \
+    --project "$DC_PROJECT" \
+    --out /report
+    # Use suppression like this: (where /src == $pwd)
+    # --suppression "/src/security/dependency-check-suppression.xml"

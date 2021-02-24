@@ -9,12 +9,11 @@ RUN mkdir -p oc-cli gradle && \
     chmod +x ./libs/transformxml
 
 FROM jenkins/inbound-agent:alpine
-ENV MAVEN_HOME /usr/share/java/maven
-ENV PATH $MAVEN_HOME/bin:$PATH
 USER root
 
 RUN apk update && \
     apk add --no-cache \
+    ca-certificates \
     git \
     docker \
     maven \
@@ -22,15 +21,27 @@ RUN apk update && \
 
 COPY --from=base /home/libs/transformxml /usr/local/bin
 COPY --from=base /home/oc-cli/oc /usr/local/bin
-COPY --from=base /home/maven_settings.xml /usr/share/java/maven/conf/settings.xml
-COPY ./assets/certs/aycapsu01ts472.cer aycapsu01ts472.cer
+COPY --from=base /home/maven_settings.xml /root/.m2/settings.xml
+COPY --from=base /home/ca.crt /usr/local/share/ca-certificates/ca.crt
+COPY --from=base /home/openshift-node-client-ca.crt /usr/local/share/ca-certificates/openshift-node-client-ca.crt
+COPY --from=base /home/certs/aycapsu01ts471.cer aycapsu01ts471.cer
+COPY --from=base /home/certs/aycapsu01ts472.cer aycapsu01ts472.cer
 
-RUN keytool \
+RUN update-ca-certificates
+RUN  keytool \
     -import \
     -trustcacerts \
     -alias aycapsu01ts472.dso.aycap.bayad.co.th \
     -keystore $JAVA_HOME/jre/lib/security/cacerts \
     -file aycapsu01ts472.cer \
+    -storepass changeit \
+    -noprompt
+RUN keytool \
+    -import \
+    -trustcacerts \
+    -alias aycapsu01ts471.dso.aycap.bayad.co.th \
+    -keystore $JAVA_HOME/jre/lib/security/cacerts \
+    -file aycapsu01ts471.cer \
     -storepass changeit \
     -noprompt
 

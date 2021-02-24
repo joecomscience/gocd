@@ -27,5 +27,8 @@ RUN openssl \
     -destalias aycapsu01ts472.dso.aycap.bayad.co.th
 
 FROM jenkins/jenkins:lts
-USER jenkins
+USER root
+COPY --from=jenkins-base /home/ca.crt /usr/local/share/ca-certificates/ca.crt
 COPY --from=jenkins-base /home/jenkins_keystore.jks /var/jenkins_home/
+
+RUN update-ca-certificates
