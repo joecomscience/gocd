@@ -2,6 +2,8 @@
 
 set -e
 
+ca_file=/usr/local/share/ca-certificates/ca.crt
+
 chmod u+x ./libs/transformxml
 mv ./libs/transformxml /usr/local/bin
 
@@ -29,7 +31,32 @@ tar xvzf openshift-origin-client-tools-v3.11.0-0cbc58b-linux-64bit.tar.gz
 cp ./openshift-origin-client-tools-v3.11.0-0cbc58b-linux-64bit/oc /usr/local/bin
 rm -rf openshift-origin-client-tools-v3.11.0-0cbc58b-linux-64bit*
 
+<<<<<<< HEAD
 echo '--install internal cert--'
 update-ca-certificates
 # keytool -import -storepass changeit -file /usr/share/ca-certificates/master.crt -keystore /etc/ssl/certs/java/cacerts -noprompt -alias jenkins_master
 
+=======
+echo '--install sdkman manage java version--'
+curl -s "https://get.sdkman.io" | bash
+rm -rf /var/lib/apt/lists/*
+echo "sdkman_auto_answer=true" > $SDKMAN_DIR/etc/config
+echo "sdkman_auto_selfupdate=false" >> $SDKMAN_DIR/etc/config
+echo "sdkman_insecure_ssl=true" >> $SDKMAN_DIR/etc/config
+
+source $SDKMAN_DIR/bin/sdkman-init.sh
+
+sdk install java $SDKMAN_JAVA_VERSION
+
+echo '--install internal cert--'
+update-ca-certificates
+java_default=$SDKMAN_DIR/candidates/java/current/jre/lib/security/cacerts
+
+keytool \
+-import \
+-storepass changeit \
+-file $ca_file \
+-keystore $java_default \
+-noprompt \
+-alias jenkins_master
+>>>>>>> dccac8c05c8e20e6490a40ae83e0e64489b76c61
