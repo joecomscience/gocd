@@ -5,35 +5,46 @@ WORKDIR /home
 COPY ./assets/ .
 ADD https://github.com/openshift/origin/releases/download/v3.11.0/openshift-origin-client-tools-v3.11.0-0cbc58b-linux-64bit.tar.gz openshift.tar.gz
 ADD http://archive.apache.org/dist/maven/maven-3/$MAVEN_VERSION/binaries/apache-maven-$MAVEN_VERSION-bin.tar.gz maven.tar.gz
+ADD https://github.com/jeremylong/DependencyCheck/releases/download/v6.1.1/dependency-check-6.1.1-release.zip dependency-check-6.1.1-release.zip
 
 RUN mkdir -p oc-cli maven && \
     tar -xvf openshift.tar.gz -C ./oc-cli --strip-components 1 && \
     tar -xvf maven.tar.gz -C ./maven --strip-components 1 && \
-    chmod +x ./libs/transformxml
+    unzip dependency-check-6.1.1-release.zip && \
+    chmod +x dependency-check/bin/dependency-check.sh ./libs/transformxml
 
 FROM openjdk:7-alpine
+ENV URL=""
+ENV SECRET=""
+ENV WORKDIR=""
 ENV MAVEN_HOME /usr/share/java/maven-3
-ENV PATH $MAVEN_HOME/bin:$PATH
+ENV PATH $PATH:$MAVEN_HOME/bin
+
 USER root
 
 RUN apk update && \
     apk add --no-cache \
     git \
     docker \
+    openjdk8 \
     jq
 
-COPY --from=base /usr/local/bin/jenkins-agent /usr/local/bin
 COPY --from=base /home/maven /usr/share/java/maven-3
 COPY --from=base /home/libs/transformxml /usr/local/bin
 COPY --from=base /home/oc-cli/oc /usr/local/bin
 COPY --from=base /home/maven_settings.xml /root/.m2/settings.xml
+COPY --from=base /home/dependency-check /opt/dependency-check
 COPY --from=base /home/ca.crt /usr/local/share/ca-certificates/ca.crt
 COPY --from=base /home/openshift-node-client-ca.crt /usr/local/share/ca-certificates/openshift-node-client-ca.crt
-COPY --from=base /home/certs/aycapsu01ts471.cer aycapsu01ts471.cer
-COPY --from=base /home/certs/aycapsu01ts472.cer aycapsu01ts472.cer
+COPY --from=base /home/agent.jar .
+COPY --from=base /home/certs/aycapsu01ts471.cer .
+COPY --from=base /home/certs/aycapsu01ts472.cer .
 
 RUN update-ca-certificates && \
-    ln -s /usr/local/bin/jenkins-agent /usr/local/bin/jenkins-slave
+    cd /usr/lib/jvm && \
+    rm -rf default-jvm java-8-openjdk && \
+    ln -s java-1.7-openjdk default-jvm && \
+    ln -s /opt/dependency-check/bin/dependency-check.sh /usr/local/bin/dependency-check
 
 RUN  keytool \
     -import \
@@ -42,15 +53,23 @@ RUN  keytool \
     -keystore $JAVA_HOME/jre/lib/security/cacerts \
     -file aycapsu01ts472.cer \
     -storepass changeit \
-    -noprompt
-RUN keytool \
+    -noprompt && \
+    keytool \
     -import \
     -trustcacerts \
     -alias aycapsu01ts471.dso.aycap.bayad.co.th \
     -keystore $JAVA_HOME/jre/lib/security/cacerts \
     -file aycapsu01ts471.cer \
     -storepass changeit \
+    -noprompt && \
+    keytool \
+    -import \
+    -trustcacerts \
+    -alias aycap-internal-ca \
+    -keystore $JAVA_HOME/jre/lib/security/cacerts \
+    -file /usr/local/share/ca-certificates/ca.crt \
+    -storepass changeit \
     -noprompt
 
 VOLUME [ "/var/run/docker.sock" ]
-ENTRYPOINT ["/usr/local/bin/jenkins-agent"]
+CMD /usr/lib/jvm/java-1.8-openjdk/bin -jar agent.jar jnlpUrl $URL -secret $SECRET -workDir $WORKDIR
